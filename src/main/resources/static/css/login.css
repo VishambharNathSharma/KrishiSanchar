@@ -1,0 +1,219 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f4f7f6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+
+.login-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+}
+
+.login-card {
+    background: #ffffff;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.login-header h2 {
+    color: #0b4a2e;
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.login-header p {
+    color: #666;
+    font-size: 14px;
+}
+
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #333;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.input-group input:focus {
+    border-color: #0b4a2e;
+}
+
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    font-size: 13px;
+}
+
+.remember-me {
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.forgot-password {
+    color: #0b4a2e;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    background-color: #0b4a2e;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #083823;
+}
+
+.btn-google {
+    width: 100%;
+    padding: 12px;
+    background-color: #fff;
+    color: #444;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.3s;
+}
+
+.btn-google:hover {
+    background-color: #f9f9f9;
+}
+
+.google-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 24px 0;
+    color: #999;
+    font-size: 13px;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #eee;
+}
+
+.divider span {
+    padding: 0 10px;
+}
+
+
+.signup-prompt {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 14px;
+    color: #666;
+}
+
+.signup-prompt a {
+    color: #0b4a2e;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.signup-prompt a:hover {
+    text-decoration: underline;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .input-group {
+    flex: 1;
+}
+
+.input-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s;
+    background-color: #fff;
+    cursor: pointer;
+    /* Optional: custom arrow for select */
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px top 50%;
+    background-size: 12px auto;
+}
+
+.input-group select:focus {
+    border-color: #0b4a2e;
+}
+
+
+@media (max-width: 600px) {
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+}
