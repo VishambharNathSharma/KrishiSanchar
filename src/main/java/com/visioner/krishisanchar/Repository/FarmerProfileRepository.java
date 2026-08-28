@@ -10,4 +10,5 @@ import java.util.Optional;
 @Repository
 public interface FarmerProfileRepository extends JpaRepository<FarmerProfile, Long> {
     Optional<FarmerProfile> findByFarmerId(String farmerId);
+    Optional<FarmerProfile> findByUserId(String userId);
 }

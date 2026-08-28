@@ -22,6 +22,12 @@ public class FarmerProfile {
     @Column(nullable = false,unique = true)
     private String farmerId;
 
+    @Column(nullable = false, unique = true)
+    private String userId; // Matches 'Email or Phone Number' from your signup form
+
+    @Column(nullable = false)
+    private String password;
+
     private boolean isRegistered;
 
     private boolean aadhaarLink;

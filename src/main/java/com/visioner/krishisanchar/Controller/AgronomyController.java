@@ -6,6 +6,7 @@ import com.visioner.krishisanchar.model.mongo.HistoryLog;
 import com.visioner.krishisanchar.model.mongo.HistoryLogRepository;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,28 +26,32 @@ public class AgronomyController {
     }
 
     @PostMapping("/crop")
-    public ResponseEntity<CropPredictionResponse> getCrop(@RequestBody CropInput input, @RequestHeader("X-Farmer-Id") String farmerId){
+    public ResponseEntity<CropPredictionResponse> getCrop(@RequestBody CropInput input, Authentication authentication){
+        String farmerId = authentication.getName();
         CropPredictionResponse response = mlService.predictCrop(input);
         logActivity(farmerId,"Crop Rec.", "Recommended" + response.recommendedCrop());
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/fertilizer")
-    public ResponseEntity<FertilizerPredictionResponse> getFertilizer(@RequestBody FertilizerInputDto input, @RequestHeader("X-Farmer-Id") String farmerId){
+    public ResponseEntity<FertilizerPredictionResponse> getFertilizer(@RequestBody FertilizerInputDto input, Authentication authentication){
+        String farmerId = authentication.getName();
         FertilizerPredictionResponse response = mlService.predictFertilizer(input);
         logActivity(farmerId,"Fertilizer Rec.", "Recommended" + response.recommendedFertilizer());
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/yield")
-    public ResponseEntity<YieldPredictionResponse> getYield(@RequestBody YieldInputDto input , @RequestHeader("X-Farmer-Id") String farmerId){
+    public ResponseEntity<YieldPredictionResponse> getYield(@RequestBody YieldInputDto input , Authentication authentication){
+        String farmerId = authentication.getName();
         YieldPredictionResponse response = mlService.predictYield(input);
         logActivity(farmerId,"Yield Rec.", "Estimated" + response.predictedYieldTonnes() + " t/ha");
         return ResponseEntity.ok(response);
     }
 
     @PostMapping(value="/disease" , consumes= MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<DiseasePredictionResponse> getDisease(@RequestParam("image") MultipartFile image,@RequestHeader("X-Farmer-Id") String farmerId) throws IOException {
+    public ResponseEntity<DiseasePredictionResponse> getDisease(@RequestParam("image") MultipartFile image,Authentication authentication) throws IOException {
+        String farmerId = authentication.getName();
         DiseasePredictionResponse response = mlService.predictDisease(image);
         logActivity(farmerId,"Disease Detection", response.disease() + " Detected");
         return ResponseEntity.ok(response);
