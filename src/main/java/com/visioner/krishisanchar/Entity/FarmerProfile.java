@@ -32,6 +32,9 @@ public class FarmerProfile {
 
     private boolean aadhaarLink;
 
+    @Column(name = "photo_url")
+    private String photoUrl;
+
     private String location;
 
     private Double totalLandArea;
