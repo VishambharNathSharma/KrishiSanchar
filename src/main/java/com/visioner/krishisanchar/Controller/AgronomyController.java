@@ -1,6 +1,8 @@
 package com.visioner.krishisanchar.Controller;
 
 import com.visioner.krishisanchar.DTO.*;
+import com.visioner.krishisanchar.Entity.FarmerProfile;
+import com.visioner.krishisanchar.Repository.FarmerProfileRepository;
 import com.visioner.krishisanchar.Service.MlBridgeService;
 import com.visioner.krishisanchar.model.mongo.HistoryLog;
 import com.visioner.krishisanchar.model.mongo.HistoryLogRepository;
@@ -19,20 +21,24 @@ import java.time.LocalDateTime;
 public class AgronomyController {
     private final MlBridgeService mlService;
     private final HistoryLogRepository historyLogRepository;
-
-    public AgronomyController(MlBridgeService mlService, HistoryLogRepository historyLogRepository){
+    private final FarmerProfileRepository farmerProfileRepository;
+    public AgronomyController(MlBridgeService mlService, HistoryLogRepository historyLogRepository, FarmerProfileRepository farmerProfileRepository){
        this.mlService = mlService;
        this.historyLogRepository = historyLogRepository;
+       this.farmerProfileRepository = farmerProfileRepository;
     }
-
     @PostMapping("/crop")
     public ResponseEntity<CropPredictionResponse> getCrop(@RequestBody CropInput input, Authentication authentication){
         String farmerId = authentication.getName();
-        CropPredictionResponse response = mlService.predictCrop(input);
-        logActivity(farmerId,"Crop Rec.", "Recommended" + response.recommendedCrop());
+
+        FarmerProfile profile = farmerProfileRepository.findByFarmerId(farmerId).orElse(null);   // was findByUserId — fixed
+        Double area = profile != null ? profile.getTotalLandArea() : null;
+        String location = profile != null ? profile.getLocation() : null;
+
+        CropPredictionResponse response = mlService.predictCrop(input, area, location);
+        logActivity(farmerId, "Crop Rec.", "Recommended " + response.recommendedCrop());
         return ResponseEntity.ok(response);
     }
-
     @PostMapping("/fertilizer")
     public ResponseEntity<FertilizerPredictionResponse> getFertilizer(@RequestBody FertilizerInputDto input, Authentication authentication){
         String farmerId = authentication.getName();

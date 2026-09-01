@@ -26,7 +26,7 @@ public class DashboardService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    @Value("${ai.google.genai.api-key}")
+    @Value("${spring.ai.google.genai.api-key}")
     private String geminiApiKey;
 
     public DashboardService(
@@ -287,7 +287,7 @@ public class DashboardService {
 
         String url =
                 "https://generativelanguage.googleapis.com/v1beta/"
-                        + "models/gemini-3.7-flash:generateContent";
+                        + "models/gemini-3.6-flash:generateContent";
 
 
         // ---------------------------------------------------------

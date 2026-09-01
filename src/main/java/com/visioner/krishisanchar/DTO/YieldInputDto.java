@@ -1,8 +1,13 @@
 package com.visioner.krishisanchar.DTO;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public record YieldInputDto(
         String crop,
         Double area,
-        Double rainfall,
-        Double fertilizerUsed
+        @JsonProperty("fertilizer_used")
+        Double fertilizerUsed,
+        @JsonProperty("soil_quality")
+                String soilQuality,
+        Double rainfall
 ) {}

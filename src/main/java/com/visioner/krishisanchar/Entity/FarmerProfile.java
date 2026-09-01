@@ -28,9 +28,9 @@ public class FarmerProfile {
     @Column(nullable = false)
     private String password;
 
-    private boolean isRegistered;
+    private Boolean isRegistered;
 
-    private boolean aadhaarLink;
+    private Boolean aadhaarLink;
 
     @Column(name = "photo_url")
     private String photoUrl;

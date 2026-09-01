@@ -5,7 +5,20 @@
 // Single source of truth for the backend origin — change this (or wire it
 // to a build-time env var) instead of editing every fetch() call below.
 const API_BASE_URL = 'http://localhost:8080/api/v1';
+// ==========================================================================
+// AUTHENTICATION GUARD
+// ==========================================================================
 
+// If there is no JWT token, don't allow access to main.html
+(function checkAuthentication() {
+
+  const token = localStorage.getItem('jwt_token');
+
+  if (!token) {
+    window.location.replace('login.html');
+  }
+
+})();
 document.addEventListener('DOMContentLoaded', () => {
   initNavigation();
   initSidebar();
@@ -22,97 +35,172 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================================================
-// 1. NAVIGATION & PAGE VIEW SWITCHING
+// 1. NAVIGATION & DASHBOARD
 // ==========================================================================
+
 function initNavigation() {
   const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
   const panels = document.querySelectorAll('.dashboard-panel');
   const pageTitle = document.getElementById('current-page-title');
 
   navItems.forEach(item => {
+
+    // Ignore logout
+    if (item.classList.contains('logout-item')) {
+      return;
+    }
+
     item.addEventListener('click', (e) => {
-      // Ignore logout click since it has inline handler
-      if (item.classList.contains('logout-item')) return;
-      
       e.preventDefault();
+
       const targetId = item.getAttribute('data-target');
-      
-      // Update sidebar active class
-      navItems.forEach(nav => nav.classList.remove('active'));
+
+      // Update sidebar active item
+      navItems.forEach(nav => {
+        nav.classList.remove('active');
+      });
+
       item.classList.add('active');
 
-      // Update active panel with transition
+      // Update dashboard panel
       panels.forEach(panel => {
         panel.classList.remove('active');
+
         if (panel.id === targetId) {
           panel.classList.add('active');
-          // Update header title
-          pageTitle.textContent = item.querySelector('span').textContent;
         }
       });
 
-      // Close sidebar on mobile after clicking
+      // Update page title
+      if (pageTitle) {
+        const title = item.querySelector('span');
+
+        if (title) {
+          pageTitle.textContent = title.textContent;
+        }
+      }
+
+      // Close sidebar on mobile
       const sidebar = document.querySelector('.sidebar');
-      if (sidebar.classList.contains('active')) {
+
+      if (
+        sidebar &&
+        window.innerWidth <= 1024 &&
+        sidebar.classList.contains('active')
+      ) {
         sidebar.classList.remove('active');
       }
     });
   });
 }
 
-// Enter Dashboard View
+
+// ==========================================================================
+// ENTER DASHBOARD
+// ==========================================================================
+// main.html is now ONLY the dashboard.
+// There is no landing page anymore.
+
 function enterDashboard() {
-  const landingPage = document.getElementById('landing-page');
-  const dashboardPage = document.getElementById('dashboard-page');
-  
-  landingPage.classList.remove('active');
+
+  const dashboardPage =
+    document.getElementById('dashboard-page');
+
+  if (!dashboardPage) {
+    console.error('Dashboard element not found.');
+    return;
+  }
+
+  // Make dashboard visible
   dashboardPage.classList.add('active');
-  
-  // Set default tab (Overview)
+
+  // Open Overview by default
   switchDashboardTab('dashboard-overview');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Scroll to top
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
 }
 
-// Exit Dashboard View (Logout)
+
+// ==========================================================================
+// LOGOUT
+// ==========================================================================
+
 function exitDashboard() {
-  const landingPage = document.getElementById('landing-page');
-  const dashboardPage = document.getElementById('dashboard-page');
-  
-  dashboardPage.classList.remove('active');
-  landingPage.classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Remove JWT
+  localStorage.removeItem('jwt_token');
+
+  // Optional: remove other login-related data
+  // localStorage.removeItem('farmer');
+
+  // Go directly to login page
+  window.location.href = 'login.html';
 }
 
-// Switch tabs dynamically from links inside cards
-function switchDashboardTab(targetTabId) {
-  const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
-  const panels = document.querySelectorAll('.dashboard-panel');
-  const pageTitle = document.getElementById('current-page-title');
 
-  // Find corresponding nav item
+// ==========================================================================
+// SWITCH DASHBOARD TABS
+// ==========================================================================
+
+function switchDashboardTab(targetTabId) {
+
+  const navItems =
+    document.querySelectorAll('.sidebar-nav .nav-item');
+
+  const panels =
+    document.querySelectorAll('.dashboard-panel');
+
+  const pageTitle =
+    document.getElementById('current-page-title');
+
+
+  // Update navigation
   navItems.forEach(item => {
+
     item.classList.remove('active');
+
     if (item.getAttribute('data-target') === targetTabId) {
+
       item.classList.add('active');
-      pageTitle.textContent = item.querySelector('span').textContent;
+
+      if (pageTitle) {
+
+        const title = item.querySelector('span');
+
+        if (title) {
+          pageTitle.textContent = title.textContent;
+        }
+      }
     }
   });
 
-  // Switch panels
+
+  // Update panels
   panels.forEach(panel => {
+
     panel.classList.remove('active');
+
     if (panel.id === targetTabId) {
       panel.classList.add('active');
     }
   });
 }
 
-// Shortcut to open dashboard to specific tab
+
+// ==========================================================================
+// NAVIGATE TO DASHBOARD TAB
+// ==========================================================================
+
 function navigateToDashboard(targetTabId) {
+
   enterDashboard();
+
   switchDashboardTab(targetTabId);
 }
-
 
 // ==========================================================================
 // 2. SIDEBAR TOGGLE & NOTIFICATIONS
@@ -241,10 +329,10 @@ function closeSchemeModal() {
 function submitSchemeApplication(e) {
   e.preventDefault();
   closeSchemeModal();
-  
+
   // Show toast message
   showToast(`Application for ${activeScheme} submitted successfully!`);
-  
+
   // Log into History Table
   addHistoryLog(
     new Date().toLocaleString(),
@@ -258,7 +346,7 @@ function showToast(message) {
   const toast = document.getElementById('toast');
   toast.textContent = message;
   toast.classList.add('show');
-  
+
   setTimeout(() => {
     toast.classList.remove('show');
   }, 4000);
@@ -267,10 +355,10 @@ function showToast(message) {
 // Add history row
 function addHistoryLog(date, type, params, result) {
   const tableBody = document.getElementById('history-table-body');
-  const typeClass = type.toLowerCase().includes('disease') ? 'disease' : 
-                    type.toLowerCase().includes('crop') ? 'crop' : 
+  const typeClass = type.toLowerCase().includes('disease') ? 'disease' :
+                    type.toLowerCase().includes('crop') ? 'crop' :
                     type.toLowerCase().includes('fertilizer') ? 'fertilizer' : 'crop';
-  
+
   const icon = typeClass === 'disease' ? 'fa-virus-slash' :
                typeClass === 'fertilizer' ? 'fa-flask' : 'fa-seedling';
 
@@ -281,7 +369,7 @@ function addHistoryLog(date, type, params, result) {
     <td>${params}</td>
     <td>${result}</td>
   `;
-  
+
   // Insert at the top of history table
   tableBody.insertBefore(newRow, tableBody.firstChild);
 }
@@ -360,7 +448,6 @@ function initDiseaseDetection() {
 
   if (!dropZone) return;
 
-  // Handle file selection (Click or Drag & Drop)
   dropZone.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', (e) => {
     if (fileInput.files.length) handleLeafFile(fileInput.files[0]);
@@ -382,7 +469,6 @@ function initDiseaseDetection() {
     reader.readAsDataURL(file);
   }
 
-  // Remove Image
   removeBtn.addEventListener('click', () => {
     selectedFile = null;
     fileInput.value = '';
@@ -394,7 +480,6 @@ function initDiseaseDetection() {
     resultsContainer.style.display = 'none';
   });
 
-  // Call Backend API
   analyzeBtn.addEventListener('click', async () => {
     if (!selectedFile) return;
 
@@ -403,12 +488,10 @@ function initDiseaseDetection() {
 
     const token = localStorage.getItem('jwt_token');
 
-    // Prepare Multipart Form Data
     const formData = new FormData();
     formData.append('image', selectedFile);
 
     try {
-      // NOTE: Do NOT set 'Content-Type' header when sending FormData
       const response = await fetch(`${API_BASE_URL}/agronomy/disease`, {
         method: 'POST',
         headers: {
@@ -417,20 +500,23 @@ function initDiseaseDetection() {
         body: formData
       });
 
-      if (!response.ok) throw new Error("Failed to analyze image");
+      if (!response.ok) {
+        // Surface the actual server error instead of a generic message
+        let detail = 'Failed to analyze image';
+        try {
+          const errBody = await response.json();
+          detail = errBody.detail || errBody.message || detail;
+        } catch (_) { /* response wasn't JSON, ignore */ }
+        throw new Error(detail);
+      }
 
       const data = await response.json();
-
-      // Update UI with actual ML response (Update DOM IDs based on your HTML)
-      document.querySelector('#detection-results h3').textContent = data.disease;
-      document.querySelector('.score-val').textContent = `${data.confidence ?? '--'}%`;
-      document.querySelector('.progress-bar-fill').style.width = `${data.confidence ?? 0}%`;
+      renderDiseaseResult(data);
 
       emptyState.style.display = 'none';
       resultsContainer.style.display = 'block';
       showToast('Diagnosis completed successfully!');
 
-      // Instantly update History Table
       if (typeof addHistoryLog === 'function') {
         addHistoryLog(
           new Date().toLocaleString('en-IN'),
@@ -442,14 +528,74 @@ function initDiseaseDetection() {
 
     } catch (error) {
       console.error(error);
-      showToast('Error connecting to ML engine.');
+      showToast(error.message || 'Error connecting to ML engine.');
     } finally {
       analyzeBtn.innerHTML = 'Scan Leaf for Diseases <i class="fas fa-qrcode"></i>';
       analyzeBtn.disabled = false;
     }
   });
-}
 
+  function renderDiseaseResult(data) {
+    const isHealthy = data.disease && data.disease.toLowerCase() === 'healthy';
+
+    // Header tag + title
+    const tagEl = resultsContainer.querySelector('.tag-danger');
+    if (tagEl) {
+      tagEl.textContent = isHealthy ? 'Healthy' : 'Disease Detected';
+      tagEl.classList.toggle('tag-danger', !isHealthy);
+      tagEl.classList.toggle('tag-success', isHealthy);
+    }
+
+    const titleEl = resultsContainer.querySelector('.result-header h3');
+    if (titleEl) titleEl.textContent = data.disease ?? 'Unknown';
+
+    // Crop name (API returns `crop`, e.g. "Tomato") — reuse the sci-name slot
+    const sciNameEl = resultsContainer.querySelector('.sci-name');
+    if (sciNameEl) sciNameEl.textContent = data.crop ? `Crop: ${data.crop}` : '';
+
+    // Confidence
+    const confidencePercent = typeof data.confidence === 'number'
+      ? Math.round(data.confidence * 100)
+      : null;
+    const scoreValEl = resultsContainer.querySelector('.score-val');
+    const scoreFillEl = resultsContainer.querySelector('.progress-bar-fill');
+    if (scoreValEl) scoreValEl.textContent = confidencePercent === null ? '--' : `${confidencePercent}%`;
+    if (scoreFillEl) scoreFillEl.style.width = `${confidencePercent ?? 0}%`;
+
+    // "About Disease" — the API doesn't return a description, so fall back
+    // to severity as the closest available info until the backend adds one
+    const aboutEl = resultsContainer.querySelectorAll('.result-info-section')[0]?.querySelector('p');
+    if (aboutEl) {
+      aboutEl.textContent = isHealthy
+        ? 'No disease detected on this leaf.'
+        : `Severity: ${data.severity ?? 'Unknown'}`;
+    }
+
+    // Remedy / recommended action — API returns a single string, not a list.
+    // Render it as a single list item; hide the section for healthy leaves.
+    const remedySection = resultsContainer.querySelectorAll('.result-info-section')[1];
+    if (remedySection) {
+      const heading = remedySection.querySelector('h4');
+      const list = remedySection.querySelector('ul');
+      if (heading) heading.textContent = 'Recommended Action';
+      if (list) {
+        list.innerHTML = '';
+        if (!isHealthy && data.remedy) {
+          const li = document.createElement('li');
+          li.textContent = data.remedy;
+          list.appendChild(li);
+        }
+      }
+      remedySection.style.display = isHealthy ? 'none' : 'block';
+    }
+
+    // Prevention section — no data from API yet; hide until backend supports it
+    const preventionSection = resultsContainer.querySelectorAll('.result-info-section')[2];
+    if (preventionSection) {
+      preventionSection.style.display = 'none';
+    }
+  }
+}
 // ==========================================================================
 // 5. CROP RECOMMENDATION
 // ==========================================================================
@@ -497,10 +643,21 @@ function initCropRecommendation() {
 
         const data = await response.json();
 
-        // backend returns { recommendedCrop: "Wheat", score: "92%" }
+        const confidencePercent = typeof data.confidence === 'number'
+          ? Math.round(data.confidence * 100)
+          : null;
         document.getElementById('recommended-crop-name').textContent = data.recommendedCrop;
-        document.getElementById('crop-suit-val').textContent = data.score ?? '--';
+        document.getElementById('crop-suit-val').textContent = confidencePercent === null ? '--' : `${confidencePercent}%`;
+        document.getElementById('crop-suit-bar').style.width = `${confidencePercent ?? 0}%`;
+document.getElementById('crop-profit-val').textContent = data.estimatedProfit ?? '--';
 
+const tipsList = document.getElementById('crop-tips-list');
+tipsList.innerHTML = '';
+(data.growingTips || []).forEach(tip => {
+  const li = document.createElement('li');
+  li.textContent = tip;
+  tipsList.appendChild(li);
+});
         document.getElementById('crop-empty-state').style.display = 'none';
         document.getElementById('crop-result-card').style.display = 'block';
         showToast('New crop recommendation calculated!');
@@ -516,103 +673,375 @@ function initCropRecommendation() {
 }
 
 
+
 // ==========================================================================
-// 6. FERTILIZER RECOMMENDATION (Connected to Backend)
+// FERTILIZER RECOMMENDATION
 // ==========================================================================
+// ==========================================================================
+// FERTILIZER RECOMMENDATION
+// ==========================================================================
+
 function initFertilizerRecommendation() {
-  const form = document.getElementById('fertilizer-form');
-  const emptyState = document.getElementById('fert-empty-state');
-  const resultCard = document.getElementById('fert-result-card');
 
-  const fertRecName = document.getElementById('fert-rec-name');
-  const fertUreaVal = document.getElementById('fert-urea-val');
-  const fertDapVal = document.getElementById('fert-dap-val');
-  const fertMopVal = document.getElementById('fert-mop-val');
-  const fertScheduleList = document.getElementById('fert-schedule-list');
+    const form = document.getElementById('fertilizer-form');
 
-  if (!form) return;
+    const emptyState =
+        document.getElementById('fert-empty-state');
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+    const resultCard =
+        document.getElementById('fert-result-card');
 
-    // 1. Gather form data matching your Java DTO
-    const payload = {
-      cropType: document.getElementById('fert-crop').value,
-      soilType: document.getElementById('fert-soil').value,
-      nitrogen: parseInt(document.getElementById('fert-n').value),
-      phosphorus: parseInt(document.getElementById('fert-p').value),
-      potassium: parseInt(document.getElementById('fert-k').value)
-    };
+    const fertRecName =
+        document.getElementById('fert-rec-name');
 
-    // 2. Set Loading state
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = 'Calculating Nutrients... <i class="fas fa-spinner fa-spin"></i>';
+    const fertApplication =
+        document.getElementById('fert-application-val');
 
-    const token = localStorage.getItem('jwt_token');
+    const fertTime =
+        document.getElementById('fert-time-val');
 
-    try {
-      // 3. Call the secure Spring Boot API
-      const response = await fetch(`${API_BASE_URL}/fertilizer/predict`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
+    const fertPrecautions =
+        document.getElementById('fert-precautions-val');
 
-      if (!response.ok) {
-        if(response.status === 403 || response.status === 401) {
-          alert("Session expired. Please log in again.");
-          window.location.href = 'login.html';
-          return;
-        }
-        throw new Error("Failed to calculate fertilizer");
-      }
 
-      const data = await response.json();
-
-      // 4. Update the UI with real ML data
-      fertRecName.textContent = data.recommendedFertilizer || 'N/A';
-      fertUreaVal.textContent = `${data.urea ?? 0} kg`;
-      fertDapVal.textContent = `${data.dap ?? 0} kg`;
-      fertMopVal.textContent = `${data.mop ?? 0} kg`;
-
-      // Update schedule list from the backend response only — no canned fallback text
-      fertScheduleList.innerHTML = '';
-      const schedule = Array.isArray(data.schedule) ? data.schedule : [];
-
-      if (schedule.length === 0) {
-        const li = document.createElement('li');
-        li.textContent = 'No application schedule provided.';
-        fertScheduleList.appendChild(li);
-      } else {
-        schedule.forEach(step => {
-          const li = document.createElement('li');
-          li.textContent = step;
-          fertScheduleList.appendChild(li);
-        });
-      }
-
-      emptyState.style.display = 'none';
-      resultCard.style.display = 'block';
-
-      showToast('Fertilizer recommendations calculated successfully!');
-
-    } catch (error) {
-      console.error(error);
-      showToast('Error connecting to the ML engine.');
-    } finally {
-      // 5. Reset button
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = originalText;
+    if (!form) {
+        console.error('Fertilizer form not found.');
+        return;
     }
-  });
+
+
+    form.addEventListener('submit', async (e) => {
+
+        e.preventDefault();
+
+
+        // ==============================================================
+        // Read form values
+        // ==============================================================
+
+        const crop =
+            document.getElementById('fert-crop').value;
+
+        const soil =
+            document.getElementById('fert-soil').value;
+
+        const nitrogen =
+            parseFloat(
+                document.getElementById('fert-n').value
+            );
+
+        const phosphorus =
+            parseFloat(
+                document.getElementById('fert-p').value
+            );
+
+        const potassium =
+            parseFloat(
+                document.getElementById('fert-k').value
+            );
+
+        const temperature =
+            parseFloat(
+                document.getElementById('fert-temperature').value
+            );
+
+        const humidity =
+            parseFloat(
+                document.getElementById('fert-humidity').value
+            );
+
+        const moisture =
+            parseFloat(
+                document.getElementById('fert-moisture').value
+            );
+
+
+        // ==============================================================
+        // Validate
+        // ==============================================================
+
+        if (
+            !crop ||
+            !soil ||
+            Number.isNaN(nitrogen) ||
+            Number.isNaN(phosphorus) ||
+            Number.isNaN(potassium) ||
+            Number.isNaN(temperature) ||
+            Number.isNaN(humidity) ||
+            Number.isNaN(moisture)
+        ) {
+
+            showToast(
+                'Please fill in all fertilizer fields.'
+            );
+
+            return;
+        }
+
+
+        if (humidity < 0 || humidity > 100) {
+
+            showToast(
+                'Humidity must be between 0 and 100%.'
+            );
+
+            return;
+        }
+
+
+        if (moisture < 0 || moisture > 100) {
+
+            showToast(
+                'Soil moisture must be between 0 and 100%.'
+            );
+
+            return;
+        }
+
+
+        // ==============================================================
+        // JWT
+        // ==============================================================
+
+        const token =
+            localStorage.getItem('jwt_token');
+
+
+        if (!token) {
+
+            localStorage.removeItem('jwt_token');
+
+            window.location.replace('login.html');
+
+            return;
+        }
+
+
+        // ==============================================================
+        // Build payload
+        // ==============================================================
+
+        const payload = {
+
+            temperature: temperature,
+
+            humidity: humidity,
+
+            moisture: moisture,
+
+            Soil_type: soil,
+
+            Crop_type: crop,
+
+            nitrogen: nitrogen,
+
+            phosphorus: phosphorus,
+
+            potassium: potassium
+
+        };
+
+
+        console.log(
+            'Fertilizer Request:',
+            payload
+        );
+
+
+        // ==============================================================
+        // Button loading
+        // ==============================================================
+
+        const submitBtn =
+            form.querySelector(
+                'button[type="submit"]'
+            );
+
+        const originalText =
+            submitBtn.innerHTML;
+
+        submitBtn.disabled = true;
+
+        submitBtn.innerHTML =
+            'Calculating... <i class="fas fa-spinner fa-spin"></i>';
+
+
+        try {
+
+            // ==========================================================
+            // Call Spring Boot backend
+            // ==========================================================
+
+            const response = await fetch(
+                `${API_BASE_URL}/fertilizer/predict`,
+                {
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    },
+
+                    body: JSON.stringify(payload)
+                }
+            );
+
+
+            // ==========================================================
+            // Authentication
+            // ==========================================================
+
+            if (
+                response.status === 401 ||
+                response.status === 403
+            ) {
+
+                localStorage.removeItem(
+                    'jwt_token'
+                );
+
+                alert(
+                    'Session expired. Please login again.'
+                );
+
+                window.location.replace(
+                    'login.html'
+                );
+
+                return;
+            }
+
+
+            // ==========================================================
+            // Error response
+            // ==========================================================
+
+            if (!response.ok) {
+
+                const errorBody =
+                    await response
+                        .json()
+                        .catch(() => null);
+
+                console.error(
+                    'Fertilizer API Error:',
+                    errorBody
+                );
+
+                throw new Error(
+                    errorBody?.message ||
+                    errorBody?.detail ||
+                    `Fertilizer prediction failed (${response.status})`
+                );
+            }
+
+
+            // ==========================================================
+            // Read response
+            // ==========================================================
+
+            const data =
+                await response.json();
+
+
+            console.log(
+                'Fertilizer Response:',
+                data
+            );
+
+
+            // ==========================================================
+            // Recommended fertilizer
+            // ==============================================================
+
+            fertRecName.textContent =
+                data.recommendedFertilizer ||
+                data.recommended_fertilizer ||
+                'Not available';
+
+
+            // ==========================================================
+            // AI guidance
+            // ==============================================================
+
+            fertApplication.textContent =
+                data.application ||
+                'No application guidance available.';
+
+            fertTime.textContent =
+                data.bestTime ||
+                'No timing guidance available.';
+
+            fertPrecautions.textContent =
+                data.precautions ||
+                'No precaution guidance available.';
+
+
+            // ==========================================================
+            // Show result
+            // ==============================================================
+
+            if (emptyState) {
+                emptyState.style.display = 'none';
+            }
+
+            if (resultCard) {
+                resultCard.style.display = 'block';
+            }
+
+
+            // ==========================================================
+            // History
+            // ==============================================================
+
+            if (
+                typeof addHistoryLog === 'function'
+            ) {
+
+                addHistoryLog(
+                    new Date().toLocaleString('en-IN'),
+                    'Fertilizer Recommendation',
+                    `Crop: ${crop}, Soil: ${soil}`,
+                    data.recommendedFertilizer ||
+                    data.recommended_fertilizer ||
+                    'Recommendation generated'
+                );
+
+            }
+
+
+            showToast(
+                'Fertilizer recommendation generated successfully!'
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                'Fertilizer recommendation error:',
+                error
+            );
+
+            showToast(
+                error.message ||
+                'Error connecting to fertilizer service.'
+            );
+
+        }
+
+        finally {
+
+            submitBtn.disabled = false;
+
+            submitBtn.innerHTML =
+                originalText;
+
+        }
+
+    });
 }
-
-
 // ==========================================================================
 // 7. AI FARMING ASSISTANT (Connected to Gemini AI)
 // ==========================================================================
@@ -731,13 +1160,15 @@ function initYieldPrediction() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const payload = {
-      crop: document.getElementById('yield-crop').value,
-      area: parseFloat(document.getElementById('yield-area').value),
-      fertilizer: parseFloat(document.getElementById('yield-fertilizer').value),
-      soil: document.getElementById('yield-soil').value,
-      rainfall: parseFloat(document.getElementById('yield-rainfall').value)
-    };
+
+      const payload = {
+        crop: document.getElementById('yield-crop').value,
+        area: parseFloat(document.getElementById('yield-area').value),
+        fertilizer_used: parseFloat(document.getElementById('yield-fertilizer').value),
+        rainfall: parseFloat(document.getElementById('yield-rainfall').value),
+        soil_quality: document.getElementById('yield-soil').value   // ← confirm this id matches your HTML
+      };
+
 
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
@@ -768,12 +1199,16 @@ function initYieldPrediction() {
 
       const data = await response.json();
 
-      yieldResultVal.textContent = typeof data.yieldPerAcre === 'number'
-        ? `${data.yieldPerAcre.toFixed(1)} Quintals / acre`
+      yieldResultVal.textContent = typeof data.predictedYieldTonnes === 'number'
+        ? `${data.predictedYieldTonnes.toFixed(1)} qtl/acre`
         : '--';
       yieldTotalVal.textContent = typeof data.totalYield === 'number'
-        ? `${data.totalYield.toFixed(0)} Quintals`
+        ? `${data.totalYield.toFixed(1)} quintals`
         : '--';
+
+      if (typeof data.modelAccuracy === 'number') {
+        document.getElementById('accuracy_predicted').textContent = `${(data.modelAccuracy * 100).toFixed(1)}% accuracy`;
+      }
 
       if (emptyState) emptyState.style.display = 'none';
       if (resultCard) resultCard.style.display = 'block';
@@ -835,18 +1270,19 @@ function initMarketAnalysis() {
         }
       });
 
-      if (!response.ok) {
-        throw new Error("No live market data available for this crop/state today.");
-      }
+            if (!response.ok) {
+              const errBody = await response.json().catch(() => null);
+              throw new Error(errBody?.message || "No live market data available for this crop/state today.");
+            }
 
       const data = await response.json();
 
       // Update the UI
-      document.getElementById('market-crop-name').textContent = `${data.crop} - ${data.state}`;
+      document.getElementById('market-crop-name').textContent = `${data.crop} - ${data.marketLocation}`;
       document.getElementById('market-modal-price').textContent = `₹ ${data.modalPrice} / quintal`;
       document.getElementById('market-min-price').textContent = `₹ ${data.minPrice}`;
       document.getElementById('market-max-price').textContent = `₹ ${data.maxPrice}`;
-      document.getElementById('market-ai-advice').textContent = data.aiAdvice;
+      document.getElementById('market-ai-advice').textContent = data.aiSellingAdvice;
 
       emptyState.style.display = 'none';
       resultCard.style.display = 'block';
@@ -1054,3 +1490,42 @@ async function loadDashboardSummary() {
   }
 }
 
+//5 Day Forecast
+async function loadFiveDayForecast() {
+  const token = localStorage.getItem('jwt_token');
+  const cityInput = document.getElementById('weather-city-input');
+  const city = cityInput ? cityInput.value.trim() : '';
+
+  if (!token || !city) return;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/weather/forecast?city=${city}`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!response.ok) throw new Error("Failed to fetch forecast");
+
+    // Expecting the backend to return an array of 5 objects
+    const forecastList = await response.json();
+    const container = document.getElementById('forecast-container');
+
+    if (!container) return;
+    container.innerHTML = '';
+
+    // Loop through each day and create a mini card
+    forecastList.forEach(day => {
+      const card = document.createElement('div');
+      card.className = 'forecast-card'; // Add your CSS styling here
+      card.innerHTML = `
+        <p style="font-weight: bold;">${day.date}</p>
+        <p>${day.condition}</p>
+        <p>${day.temperature}</p>
+      `;
+      container.appendChild(card);
+    });
+
+  } catch (error) {
+    console.error('Forecast sync error:', error);
+  }
+}

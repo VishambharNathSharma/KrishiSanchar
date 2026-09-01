@@ -1,7 +1,6 @@
 package com.visioner.krishisanchar.Controller;
 
-import com.visioner.krishisanchar.Entity.HistoryLog;
-import com.visioner.krishisanchar.Repository.HistoryLogRepository;
+
 import com.visioner.krishisanchar.Service.GeminiAiService;
 import com.visioner.krishisanchar.model.mongo.HistoryLog;
 import com.visioner.krishisanchar.model.mongo.HistoryLogRepository;

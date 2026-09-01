@@ -2,5 +2,7 @@ package com.visioner.krishisanchar.DTO;
 
 public record YieldPredictionResponse(
         Double predictedYieldTonnes,
-        String unit
+        Double totalYield,
+        String unit,
+        Double modelAccuracy
 ) {}

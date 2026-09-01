@@ -1,5 +1,6 @@
 package com.visioner.krishisanchar.Controller;
 
+import com.visioner.krishisanchar.DTO.DailyForecast;
 import com.visioner.krishisanchar.DTO.DashboardSummaryResponse;
 import com.visioner.krishisanchar.Service.WeatherService;
 import com.visioner.krishisanchar.model.mongo.HistoryLog;
@@ -9,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/weather")
@@ -40,5 +42,11 @@ public class WeatherController {
                 .build());
 
         return ResponseEntity.ok(summary);
+    }
+
+    @GetMapping("/forecast")
+    public ResponseEntity<List<DailyForecast>> getFiveDayForecast(@RequestParam String city) {
+        List<DailyForecast> forecast = weatherService.getFiveDayForecast(city);
+        return ResponseEntity.ok(forecast);
     }
 }

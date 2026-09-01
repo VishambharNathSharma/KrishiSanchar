@@ -1,11 +1,18 @@
 package com.visioner.krishisanchar.DTO;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record FertilizerPredictionResponse(
+
+        @JsonProperty("recommended_fertilizer")
         String recommendedFertilizer,
-        Double urea,
-        Double dap,
-        Double mop,
-        List<String> schedule
+
+        String explanation,
+
+        String application,
+
+        String bestTime,
+
+        String precautions
+
 ) {}

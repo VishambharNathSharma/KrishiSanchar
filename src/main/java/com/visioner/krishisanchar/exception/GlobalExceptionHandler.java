@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -49,5 +50,16 @@ public class GlobalExceptionHandler {
 
         ex.printStackTrace();
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(com.visioner.krishisanchar.Exception.MarketDataUnavailableException.class)
+    public ResponseEntity<Map<String, String>> handleMarketDataUnavailable(com.visioner.krishisanchar.Exception.MarketDataUnavailableException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of(
+                        "error", "MARKET_DATA_UNAVAILABLE",
+                        "message", ex.getMessage(),
+                        "crop", ex.getCrop(),
+                        "state", ex.getState()
+                ));
     }
 }

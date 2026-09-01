@@ -2,9 +2,7 @@ package com.visioner.krishisanchar.DTO;
 
 import java.util.List;
 
-public record CropPredictionResponse(
-        String recommendedCrop,
-        Double confidence,
+public record CropAdviceResponse(
         String estimatedProfit,
         List<String> growingTips
 ) {}

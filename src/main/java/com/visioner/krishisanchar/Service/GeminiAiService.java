@@ -17,7 +17,7 @@ import java.util.Map;
 public class GeminiAiService {
 
     // Pulls your API key from application.properties
-    @Value("${ai.google.genai.api-key}")
+    @Value("${GEMINI_API_KEY:}")
     private String apiKey;
 
     private final RestTemplate restTemplate;
@@ -29,7 +29,11 @@ public class GeminiAiService {
     }
 
     public String getChatResponse(String prompt) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+        if (apiKey == null || apiKey.isBlank()) {
+            return "The AI assistant is not configured. Set GEMINI_API_KEY and restart the application.";
+        }
+
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=" + apiKey;
 
         // Give the AI its persona and append the user's prompt
         String systemInstruction = "You are an expert agriculture AI assistant named KrishiSanchar. Answer this farmer's query concisely and helpfully in plain text. Query: ";

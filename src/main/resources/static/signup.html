@@ -17,6 +17,19 @@
 
         <form id="signupForm">
 
+            <!-- Profile Photo Preview Section -->
+           <!-- Profile Photo Section with Local Upload -->
+<div class="input-group" style="align-items: center; text-align: center; margin-bottom: 20px;">
+    <label style="margin-bottom: 8px; font-weight: 600;">Profile Photo</label>
+    <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 10px;">
+        <img id="profile-preview" src="images/default-avatar.png" alt="Profile Preview" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #0b4a2e; background-color: #f0f0f0;">
+    </div>
+    <!-- File input for local upload -->
+    <input type="file" id="localImageInput" name="imageFile" accept="image/*" style="font-size: 13px;">
+    <!-- Hidden input to store either Google URL or local file name -->
+    <input type="hidden" id="picture-hidden-input" name="profilePicture">
+</div>
+
             <h4 style="margin-bottom: 15px; color: #0b4a2e; border-bottom: 1px solid #eee; padding-bottom: 5px;">Account Details</h4>
 
             <div class="form-row">

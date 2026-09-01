@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await response.json();
                 localStorage.setItem('jwt_token', data.token); // Save Token
-                window.location.href = 'index.html'; // Redirect to dashboard
+                window.location.href = 'main.html'; // Redirect to dashboard
 
             } catch (error) {
                 alert(error.message);
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await response.json();
                 localStorage.setItem('jwt_token', data.token);
-                window.location.href = 'index.html';
+                window.location.href = 'main.html';
 
             } catch (error) {
                 alert(error.message);
